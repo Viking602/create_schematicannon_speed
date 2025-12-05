@@ -36,15 +36,20 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - name: Build with Gradle
-      run: ./gradlew clean build
-
     - name: Get version from tag
       id: get_version
       run: |
         VERSION=${GITHUB_REF#refs/tags/}
+        # Remove 'v' prefix if present
+        VERSION=${VERSION#v}
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Building version $VERSION"
+
+    - name: Build with Gradle
+      run: ./gradlew clean build -Pmod_version=${{ steps.get_version.outputs.VERSION }}
+
+    - name: List build output
+      run: ls -la ./build/libs/
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
